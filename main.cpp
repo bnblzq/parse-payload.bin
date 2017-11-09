@@ -135,6 +135,8 @@ int main(int argc,char **argv){
     info.ParseManifest();
 
     info.ListOpsType(false);
+    info.ListPostInfo();
+
     cout<<"done"<<endl;
 
 

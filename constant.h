@@ -15,8 +15,7 @@ const uint64_t kDeltaManifestSizeOffset = kDeltaVersionOffset + kDeltaVersionSiz
 const uint64_t kDeltaManifestSizeSize = 8;
 const uint64_t kDeltaMetadataSignatureSizeSize = 4;
 const uint64_t metadata_signature_size_offset = kDeltaManifestSizeOffset + kDeltaManifestSizeSize;
-
-
+const char kPostinstallDefaultScript[] = "postinst";
 
 
 #endif //PROTOBUF_CONSTANT_H
