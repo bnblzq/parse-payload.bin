@@ -47,9 +47,11 @@ static void check_and_close(FILE* fp){
 static void redirect_stdio(){
     map<string,string>::iterator it = args.find("output");
     if( it == args.end()){
-        cout<<"not found redirect files"<<endl;
+        cout<<"not found redirect files,dump to screen"<<endl;
         return;
     }
+
+    cout<<"dump log to "<< args["output"]<<endl;
 
     int pipefd[2];
     if(pipe(pipefd) == -1){
@@ -117,36 +119,22 @@ int main(int argc,char **argv){
     GetArgs(argc,argv);
     redirect_stdio(); //record the log to file
 
-    return 0;
-    ExtraInfo extra;
-    if(! extra.ReadInfo(100)) {
+    InstallInfo info;
+    if(! info.ReadDataInBytes(100)) {
         cout<<"open payload file fail"<<endl;
         return 0;
     }
 
-    extra.ParseInfo();
+    info.GetBasicHeaderInfo();
 
-    cout<<"reading whole payload,will take a little time"<<endl;
-    clock_t begin = clock();
-
-   // cout<<"length: "<<getSize("payload.bin")<<endl;
-
-    if(! extra.ReadInfo(getSize("payload.bin"))) {
+    if( ! info.ReadDataInBytes(getSize("payload.bin"))){
         cout<<"read fail"<<endl;
         return 0;
     }
 
-    clock_t end =  clock();
-    cout<<"time elapsed:"<<double(end-begin)/CLOCKS_PER_SEC<<endl;
+    info.ParseManifest();
 
-    //cout<<"veclength:"<<extra.GetVecLength()<<endl;
-
-    extra.ParseManifist();
-    extra.SetPartitions();
-    extra.setNumOps();
-    extra.ListOpsType();
-
-
+    info.ListOpsType(false);
     cout<<"done"<<endl;
 
 
