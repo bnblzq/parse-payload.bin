@@ -11,16 +11,22 @@
 #include <bitset>
 using namespace std;
 
-#define  PAYLOAD_FILE "payload.bin"
 
 #define TEST_AND_RETURN(_x) \
     do{ \
         bool _success = static_cast<bool>(_x);\
         if(!_success) { \
-            cout<<#_x<<" test failed"<<endl; \
+            cout<<"line: "<<__LINE__ <<" "<<#_x<<" is not set"<<endl; \
 return; \
 } \
 }while(0)
+
+#define PARTING_LINE(_x) \
+do{ \
+for(int i=0;i< static_cast<int>(_x);++i) cout<<"-";\
+cout<<endl;}\
+ while(0)
+
 
 
 static const char * TransformToString( InstallOperation_Type type) ;
@@ -127,7 +133,9 @@ void InstallInfo::ParseManifest() {
 
 void InstallInfo::ListPostInfo() {
 
-    cout<<"------------------------------------------------"<<endl;
+    TEST_AND_RETURN(isManifestParse);
+
+    PARTING_LINE(20);
 
     for(const auto& part_info: partition_info) {
         cout << part_info.name << " : " << endl;
@@ -157,14 +165,17 @@ void InstallInfo::ListPostInfo() {
             cout << "postinstall_optional : " << part_info.postinstall_optional << endl;
 
         } else cout << "run_postinstall : false" << endl;
-        cout << "------------------------------------------------" << endl;
+       PARTING_LINE(30);
     }
 }
 
 void InstallInfo::ListOpsType(bool print) {
 
+    TEST_AND_RETURN(print);
+
     TEST_AND_RETURN(isManifestParse);
 
+    PARTING_LINE(30);
 
     while (next_operation_num_ < num_total_operations_) {
         while (next_operation_num_ >= acc_num_operations_[current_partiton_]) {
@@ -172,10 +183,10 @@ void InstallInfo::ListOpsType(bool print) {
         }
 
         const size_t partition_operation_num = next_operation_num_ -
-                                               (current_partiton_ ? acc_num_operations_[current_partiton_-1] : 0);
+                                               (current_partiton_ ? acc_num_operations_[current_partiton_ - 1] : 0);
 
-        const InstallOperation & op = partitions_[current_partiton_].operations(partition_operation_num);
-        if(print) printOpsType(op);
+        const InstallOperation &op = partitions_[current_partiton_].operations(partition_operation_num);
+        printOpsType(op);
         next_operation_num_++;
     }
 }

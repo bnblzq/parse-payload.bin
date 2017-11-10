@@ -14,6 +14,7 @@ static void usage(int argc,char ** argv);
 
 map<string,string> args;
 
+
 static fstream::pos_type getSize(const std::string& address) {
     std::fstream motd(address.c_str(), std::ios::binary|std::ios::in|std::ios::ate);
     if(motd) {
@@ -27,7 +28,9 @@ static fstream::pos_type getSize(const std::string& address) {
 
 static void GetArgs(int argc,char ** argv){
     int c;
-    while( (c=getopt(argc,argv,"o:")) != -1){
+    args["printOps"] = "0";
+
+    while( (c=getopt(argc,argv,"o:p")) != -1){
         switch (c){
             case 'o':
             case 'O':
@@ -35,6 +38,8 @@ static void GetArgs(int argc,char ** argv){
                     args["output"] = optarg;
                 }
                 break;
+            case 'p':
+                args["printOps"] = "1";
             case '?':
                 break;
         }
@@ -121,9 +126,13 @@ static void redirect_stdio(){
 
 static void usage(int argc,char ** argv){
     cout<<"usage:"<<endl;
-    cout<<"./program payload.bin -o log.txt   dump log to log.txt"<<endl;
-    cout<<"./program payload.bin              dump log to screen"<<endl;
-    cout<<"\n\n\n\n"<<endl;
+    cout<<"./program  [-p] [-o file] [payload.bin] "<<endl;
+    cout<<endl;
+    cout<<"OPTIONS"<<endl
+        <<"-p list lengthy operations "<<endl<<endl
+        <<"-o file dump info to file,otherwise to screen"<<endl<<endl
+        <<"payload.bin  source file waiting for parsed"<<endl;
+    cout<<"\n\n\n"<<endl;
     return;
 }
 
@@ -141,14 +150,14 @@ int main(int argc,char **argv){
     }
 
     info.GetBasicHeaderInfo();
-    if( ! info.ReadDataInBytes(args["input"],getSize("payload.bin"))){
+    if( ! info.ReadDataInBytes(args["input"],getSize(args["input"]))){
         cout<<"read fail"<<endl;
         return 0;
     }
 
     info.ParseManifest();
 
-    info.ListOpsType(false);
+    info.ListOpsType(stoi(args["printOps"]));
     info.ListPostInfo();
 
     cout<<"done"<<endl;
