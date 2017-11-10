@@ -8,6 +8,7 @@
 #include <vector>
 #include <fstream>
 #include "update_metadata.pb.h"
+
 using namespace chromeos_update_engine;
 
 typedef struct Partition {
@@ -36,7 +37,7 @@ typedef struct Partition {
 
 class InstallInfo{
 public:
-    bool ReadDataInBytes(int size);
+    bool ReadDataInBytes(std::string file,int size);
     void GetBasicHeaderInfo();
     void ParseManifest();
     void ListOpsType(bool print);

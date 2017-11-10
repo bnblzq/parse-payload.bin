@@ -27,10 +27,11 @@ static const char * TransformToString( InstallOperation_Type type) ;
 static void printOpsType(const InstallOperation & op);
 //------------------------------------------
 
-bool InstallInfo::ReadDataInBytes(int size) {
+bool InstallInfo::ReadDataInBytes(string file ,int size) {
     if(vec_.size() != 0) vec_.clear();
 
-    content_.open(PAYLOAD_FILE, std::ios::binary);
+    //content_.open(PAYLOAD_FILE, std::ios::binary);
+    content_.open(file, std::ios::binary);
     if(content_){
         content_.unsetf(std::ios::skipws);
         vec_.resize(size);
@@ -38,7 +39,7 @@ bool InstallInfo::ReadDataInBytes(int size) {
         content_.read(&vec_[0], size);
         content_.close();
     }else{
-        cout<<PAYLOAD_FILE<<" doesnt exist"<<endl;
+        cout<<file<<" doesnt exist"<<endl;
         return false;
     }
     return true;
@@ -148,7 +149,6 @@ void InstallInfo::ListPostInfo() {
             printf("%02X",(unsigned char)a);
         }
         cout<<endl;
-        //copy (part_info.target_hash.begin(), part_info.target_hash.end(), ostream_iterator<uint8_t> (cout, "\n"));
 
         if (part_info.run_postinstall) {
             cout << "run_postinstall : true" << endl;

@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 using namespace std;
+static void usage(int argc,char ** argv);
 
 map<string,string> args;
 
@@ -34,8 +35,12 @@ static void GetArgs(int argc,char ** argv){
                     args["output"] = optarg;
                 }
                 break;
+            case '?':
+                break;
         }
     }
+    args["input"] = argv[optind];
+
 }
 
 static void check_and_close(FILE* fp){
@@ -114,20 +119,30 @@ static void redirect_stdio(){
 }
 
 
+static void usage(int argc,char ** argv){
+    cout<<"usage:"<<endl;
+    cout<<"./program payload.bin -o log.txt   dump log to log.txt"<<endl;
+    cout<<"./program payload.bin              dump log to screen"<<endl;
+    cout<<"\n\n\n\n"<<endl;
+    return;
+}
+
 int main(int argc,char **argv){
+
+    if(argc == 1) { usage(argc,argv);return 0;}
 
     GetArgs(argc,argv);
     redirect_stdio(); //record the log to file
 
     InstallInfo info;
-    if(! info.ReadDataInBytes(100)) {
+    if(! info.ReadDataInBytes(args["input"], 100)) {
         cout<<"open payload file fail"<<endl;
         return 0;
     }
 
     info.GetBasicHeaderInfo();
 
-    if( ! info.ReadDataInBytes(getSize("payload.bin"))){
+    if( ! info.ReadDataInBytes(args["input"],getSize("payload.bin"))){
         cout<<"read fail"<<endl;
         return 0;
     }
