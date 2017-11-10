@@ -39,7 +39,7 @@ static void GetArgs(int argc,char ** argv){
                 break;
         }
     }
-    args["input"] = argv[optind];
+    if(argc > optind) args["input"] = argv[optind];
 
 }
 
@@ -75,9 +75,9 @@ static void redirect_stdio(){
     }
     if(pid == 0){//child process
         close(pipefd[1]);
-        FILE * log_fp = fopen(args["output"].c_str(),"a");
+        FILE * log_fp = fopen(args["output"].c_str(),"w");
         if(log_fp == nullptr){
-            cout<<"fdopen failed"<<endl;
+            cout<<"fopen failed"<<endl;
             close(pipefd[0]);
             _exit(EXIT_FAILURE);
         }
@@ -141,7 +141,6 @@ int main(int argc,char **argv){
     }
 
     info.GetBasicHeaderInfo();
-
     if( ! info.ReadDataInBytes(args["input"],getSize("payload.bin"))){
         cout<<"read fail"<<endl;
         return 0;
