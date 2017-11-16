@@ -8,11 +8,13 @@
 #include <ctime>
 #include <unistd.h>
 #include <cstdlib>
+#include "gflags/gflags.h"
 
 using namespace std;
-static void usage(int argc,char ** argv);
 
-map<string,string> args;
+DEFINE_string(input,"payload.bin","file waiting for parsed");
+DEFINE_string(output,"","dump log to output");
+DEFINE_bool(print,false,"print redundant operations info");
 
 
 static fstream::pos_type getSize(const std::string& address) {
@@ -26,48 +28,23 @@ static fstream::pos_type getSize(const std::string& address) {
     }
 }
 
-static void GetArgs(int argc,char ** argv){
-    int c;
-    args["printOps"] = "0";
-
-    while( (c=getopt(argc,argv,"o:p")) != -1){
-        switch (c){
-            case 'o':
-            case 'O':
-                if(optarg){
-                    args["output"] = optarg;
-                }
-                break;
-            case 'p':
-                args["printOps"] = "1";
-            case '?':
-                break;
-        }
-    }
-    if(argc > optind) args["input"] = argv[optind];
-
-}
 
 static void check_and_close(FILE* fp){
     fflush(fp);
     if( fsync(fileno(fp)) == -1) cout<<"fsync fail"<<endl;
-    if( ferror(fp)) cout<<"error in "<<args["output"]<<endl;
+    if( ferror(fp)) cout<<"error in "<<FLAGS_output<<endl;
     fclose(fp);
 }
 static void redirect_stdio(){
-    map<string,string>::iterator it = args.find("output");
-    if( it == args.end()){
-        cout<<"not found redirect files,dump to screen"<<endl;
-        return;
-    }
+    if(FLAGS_output.empty()) return ;
 
-    cout<<"dump log to "<< args["output"]<<endl;
+    cout<<"dump log to "<< FLAGS_output<<endl;
 
     int pipefd[2];
     if(pipe(pipefd) == -1){
         cout<<"pipe fail"<<endl;
-        freopen(args["output"].c_str(),"a",stdout);
-        freopen(args["output"].c_str(),"a",stderr);
+        freopen(FLAGS_output.c_str(),"a",stdout);
+        freopen(FLAGS_output.c_str(),"a",stderr);
         setbuf(stdout,NULL);
         setbuf(stderr,NULL);
         return;
@@ -80,7 +57,7 @@ static void redirect_stdio(){
     }
     if(pid == 0){//child process
         close(pipefd[1]);
-        FILE * log_fp = fopen(args["output"].c_str(),"w");
+        FILE * log_fp = fopen(FLAGS_output.c_str(),"w");
         if(log_fp == nullptr){
             cout<<"fopen failed"<<endl;
             close(pipefd[0]);
@@ -124,44 +101,36 @@ static void redirect_stdio(){
 }
 
 
-static void usage(int argc,char ** argv){
-    cout<<"usage:"<<endl;
-    cout<<"./program  [-p] [-o file] [payload.bin] "<<endl;
-    cout<<endl;
-    cout<<"OPTIONS"<<endl
-        <<"-p list lengthy operations "<<endl<<endl
-        <<"-o file dump info to file,otherwise to screen"<<endl<<endl
-        <<"payload.bin  source file waiting for parsed"<<endl;
-    cout<<"\n\n\n"<<endl;
-    return;
-}
-
 int main(int argc,char **argv){
 
-    if(argc == 1) { usage(argc,argv);return 0;}
+    gflags::SetVersionString("1.0.0");
+    gflags::SetUsageMessage("Usage : ./a.out [-input file] [-output file] [-print]");
+    gflags::ParseCommandLineFlags(&argc,&argv,false);
 
-    GetArgs(argc,argv);
+    if(argc == 1) {
+        gflags::ShowUsageWithFlagsRestrict(gflags::ProgramInvocationShortName(), "");
+        return 0;
+    }
+
     redirect_stdio(); //record the log to file
 
     InstallInfo info;
-    if(! info.ReadDataInBytes(args["input"], 100)) {
+    if(! info.ReadDataInBytes(FLAGS_input, 100)) {
         cout<<"open payload file fail"<<endl;
         return 0;
     }
 
     info.GetBasicHeaderInfo();
-    if( ! info.ReadDataInBytes(args["input"],getSize(args["input"]))){
+    if( ! info.ReadDataInBytes(FLAGS_input,getSize(FLAGS_input))){
         cout<<"read fail"<<endl;
         return 0;
     }
 
     info.ParseManifest();
-
-    info.ListOpsType(stoi(args["printOps"]));
+    info.ListOpsType(FLAGS_print);
     info.ListPostInfo();
 
     cout<<"done"<<endl;
-
 
     return 0;
 }
