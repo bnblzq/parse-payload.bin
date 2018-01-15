@@ -1,7 +1,9 @@
 .PHONY: ALL
 
-LOCAL_CPP_INCLUDE :=-I /usr/local/protobuf/include/ -I /usr/gflags/include/
-LOCAL_CPP_LIBRARY :=-L /usr/local/protobuf/lib/ -L /usr/gflags/lib/
+#LOCAL_CPP_INCLUDE :=-I /usr/local/include/google/protobuf/ -I /usr/local/include/gflags/
+LOCAL_CPP_INCLUDE :=-I ./protobuf/ -I ./gflags/
+#LOCAL_CPP_LIBRARY :=-L /usr/local/lib/
+LOCAL_CPP_LIBRARY :=-L ./lib/
 LOCAL_LINK := -l protobuf -l gflags -lpthread
 LOCAL_CPP_FLAG := -std=c++11
 
